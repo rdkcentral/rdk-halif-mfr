@@ -208,7 +208,7 @@ The interface is initialized by the `caller` who will have the complete control 
 
   - For deleting the P-DRI image use `mfrDeletePDRI()`
 
-  - For deleting the platform image use `mfrDeletePDRI()`
+  - For deleting the platform image use `mfrScrubAllBanks()`
 
   - For retrieving the cabinet temperature use `mfrGetTemperature()`
 
