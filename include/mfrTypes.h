@@ -351,22 +351,6 @@ typedef struct _mfrUpgradeStatusNotify_t
 mfrError_t mfr_init( void );
 
 /**
- * @brief Initialize the mfr partition.
- *
- * mfr_init invokes this mfr_partition_init.
- * This function should be call once before accessing serialized data.
- *
- * @return mfrError_t                      - Status
- * @retval mfrERR_NONE                     - Success
- * @retval mfrERR_ALREADY_INITIALIZED      - Module is already initialised
- * @retval mfrERR_NOT_INITIALIZED          - Module is not initialised
- * 
- *
- * @pre  mfr_init() should be called before calling this API. If this precondition is not met, the API will return mfrERR_NOT_INITIALIZED. 
-*/
-mfrError_t mfr_partition_init(void);
-
-/**
  * @brief Uninitializes the MFR library
  *
  * This function will uninitialize all the respective internal components responsible for MFR functionalities.

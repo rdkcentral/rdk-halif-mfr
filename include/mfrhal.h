@@ -206,17 +206,6 @@ typedef struct __attribute__((__packed__)) bl_runtime_share_nvdata
 ** Functions
 */
 /**
- * @brief Reads data from flash memory.
- *
- * @param [in] srcAddr Source address in flash.
- * @param [out] destAddr Buffer receiving the flash data.
- * @param [in] size Number of bytes to read.
- *
- * @return mfrError_t Status of the operation.
- */
-mfrError_t mfrReadfromFlash(unsigned int srcAddr,  unsigned char * destAddr, unsigned int size);
-
-/**
  * @brief Validates the device model.
  *
  * @param [in] model Device model to validate.
@@ -367,13 +356,6 @@ mfrError_t mfrEraseFlash(off_t offset, size_t count);
 mfrError_t mfrResetAllImageRetryCount();
 
 /**
- * @brief Resets the retry count for PCI images.
- *
- * @return mfrError_t Status of the operation.
- */
-mfrError_t mfrResetPCIImageRetryCount(void);
-
-/**
  * @brief Reads bootloader runtime data.
  *
  * @param [out] bldata Buffer receiving the bootloader runtime data.
@@ -396,13 +378,6 @@ mfrError_t mfrErasePCI(void);
  * @param [in] sha256 SHA-256 digest to print.
  */
 void printSHA256(bool run_calculated, unsigned char *sha256);
-
-/**
- * @brief Invalidates all PCI image banks.
- *
- * @return mfrError_t Status of the operation.
- */
-mfrError_t mfrInvalidateAllPCIBanks(void);
 
 #endif /* mfrhal_h */
 /*---------------------------------------------------------------------------
