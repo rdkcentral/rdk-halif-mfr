@@ -238,7 +238,7 @@ The interface is initialized by the `caller` who will have the complete control 
     Note over HAL: Module initialization
     HAL-->>caller:return
     caller->>HAL:mfr_read()
-    Note over HAL: mfr_read operations like mfrGetSerializedData(), <br> mfrGetGammaCalibrationData()
+    Note over HAL: mfr_read operations like mfrGetSerializedData()
     HAL-->>caller:return
     caller->>HAL:mfr_write()
     Note over HAL: mfr_write operations like mfrSetSerializedData(), mfrWriteImage(), mfrDeletePDRI(),<br>mfrScrubAllBanks(), mfrSetGammaCalibrationData()
