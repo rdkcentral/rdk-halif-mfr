@@ -1,88 +1,74 @@
 # MFR HAL Documentation
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Architectural Context](#architectural-context)
-- [Scope](#scope)
-- [Vendor-Layer Responsibilities](#vendor-layer-responsibilities)
-- [Acronyms, Terms and Abbreviations](#acronyms-terms-and-abbreviations)
-- [Description](#description)
-- [Component Runtime Execution Requirements](#component-runtime-execution-requirements)
-  - [Initialization and Startup](#initialization-and-startup)
-  - [Threading Model](#threading-model)
-  - [Process Model](#process-model)
-  - [Memory Model](#memory-model)
-  - [Power Management Requirements](#power-management-requirements)
-  - [Asynchronous Notification Model](#asynchronous-notification-model)
-  - [Blocking calls](#blocking-calls)
-  - [Internal Error Handling](#internal-error-handling)
-  - [Persistence Model](#persistence-model)
-- [Non-functional requirements](#non-functional-requirements)
-  - [Logging and debugging requirements](#logging-and-debugging-requirements)
-  - [Memory and performance requirements](#memory-and-performance-requirements)
-  - [Quality Control](#quality-control)
-  - [Licensing](#licensing)
-  - [Build Requirements](#build-requirements)
-  - [Variability Management](#variability-management)
-  - [Platform or Product Customization](#platform-or-product-customization)
-- [Interface API Documentation](#interface-api-documentation)
-  - [Theory of operation and key concepts](#theory-of-operation-and-key-concepts)
-  - [Diagrams](#diagrams)
-
 ## Overview
 
-MFR is the manufacturer-data interface between platform middleware and device-specific information provided by the vendor. It provides access to device identity, product metadata, boot and image information, secure and non-secure persistent data, temperature thresholds, and Wi-Fi credentials where supported by the product.
+The Manufacturer (MFR) HAL provides a platform-independent interface for
+manufacturer/device serialization data, firmware image operations, bootloader
+configuration, secure time, FSR/configuration data, and Wi-Fi credentials.
 
-This document defines the lifecycle, runtime, integration, and quality requirements for a vendor MFR implementation. It does not prescribe a storage technology or product-specific data layout.
-
-## Architectural Context
-
-The MFR HAL provides the integration boundary between its caller and the platform-specific MFR SoC driver. The HAL translates the common MFR API contract into the device-specific storage, flash, temperature, and Wi-Fi operations required by the product.
-
-The caller remains independent of device-specific storage layout and hardware details. The vendor integration owns those assumptions and must expose only capabilities supported by the active product variant.
+The MFR HAL abstracts platform-specific persistent storage, flash/image banks,
+bootloader, eMMC, TEE, and Wi-Fi credential storage from RDK Middleware.
 
 ## Scope
 
-This specification covers lifecycle management, serialized manufacturer data, persistent secure and non-secure data, image operations, firmware-upgrade status, temperature queries and thresholds, and optional Wi-Fi credential operations.
+This specification defines the common MFR HAL behavior, including:
 
-The implementation must support the common MFR API contract and return the documented unsupported-operation status when a capability is not available on the underlying hardware.
+- MFR lifecycle
+- Device serialization data
+- Firmware image operations
+- Image upgrade status
+- PDRI management
+- Image-bank scrubbing
+- Bootloader pattern and splash-screen configuration
+- Secure UTC time
+- FSR flag management
+- Bootloader runtime configuration
+- Wi-Fi credential persistence
 
-## Vendor-Layer Responsibilities
+Platform-specific implementations may return the documented unsupported
+operation status when a capability is not available.
 
-The vendor MFR implementation shall:
+ ## Vendor layer Responsibilities
 
- - Provide the common MFR API symbols and ABI required by the product.
- - Initialize the storage, flash, and hardware dependencies needed by supported MFR operations.
- - Return product identity, metadata, image status, temperature data, and credentials from the device-owned source appropriate to the active product variant.
- - Preserve the confidentiality and integrity of secure NVRAM data, credentials, and other sensitive manufacturer information.
- - Report initialization, storage, validation, and query failures through the documented error codes.
- - Release resources created for asynchronous operations after those operations complete.
+ The vendor implementation is responsible for:
+
+ | Area | Responsibility |
+| --- | --- |
+| Initialization | Initialize all internal components required by MFR. |
+| Serialization | Provide platform-specific persistent serialization storage. |
+| Flash | Provide platform-specific flash access and verification. |
+| Image upgrade | Implement alternate-bank image upgrades. |
+| Bootloader | Provide boot-parameter and bootloader integration. |
+| PDRI | Provide PDRI deletion where supported. |
+| Image scrubbing | Remove platform images from the defined banks. |
+| Splash screen | Store and clear bootloader splash-screen data. |
+| Secure time | Interface with the platform TEE secure-time implementation. |
+| FSR | Read/write the platform FSR location. |
+| Configuration | Read/write bootloader runtime blocklist data. |
+| Wi-Fi | Read/write/erase Wi-Fi credentials in MFR persistence. |
+| Error handling | Return the documented MFR/Wi-Fi error codes. |
+| Concurrency | Preserve the documented thread-safety contract. |
+| Power state | Preserve image upgrade state across DEEPSLEEP/wakeup. |
 
 ## Acronyms, Terms and Abbreviations
 
-- `HAL`    - Hardware Abstraction Layer
-- `API`    - Application Programming Interface
-- `Caller` - Any user of the interface via the `APIs`
-- `NVRAM`  - Non-volatile random-access memory
-- `DTCP`   - Digital Transmission Content Protection
-- `MFR`    - Manufacturer library
-- `PDRI`   - Peripheral disaster recovery image
-- `WIFI`   - Wireless Fidelity
+| Term | Description |
+| --- | --- |
+| HAL | Hardware Abstraction Layer |
+| API | Application Programming Interface |
+| MFR | Manufacturer |
+| PDRI | Peripheral Disaster Recovery Image |
+| DRI | Disaster Recovery Image |
+| FSR | Factory/System Reset flag |
+| TEE | Trusted Execution Environment |
+| CRC | Cyclic Redundancy Check |
+| SVN | Software Version Number |
+| OUI | Organizationally Unique Identifier |
+| eMMC | Embedded MultiMediaCard |
+| Wi-Fi | Wireless Fidelity |
 
 
 ## Description
-The diagram below describes a high-level software architecture of the module stack.
-
-```mermaid
-%%{ init : { "theme" : "forest", "flowchart" : { "curve" : "linear" }}}%%
-flowchart TD
-y[caller]<-->x[MFR HAL];
-x[MFR HAL]<-->z[MFR SOC Driver];
-style y fill:#99CCFF,stroke:#333,stroke-width:0.3px,align:left
-style z fill:#fcc,stroke:#333,stroke-width:0.3px,align:left
-style x fill:#9f9,stroke:#333,stroke-width:0.3px,align:left
- ```
 
 `MFR` interface provides `APIs` that can interface with other interfaces in order to persist the data required for their operational needs. These `APIs` are used by various system components which are not limited to the below ones and can be persisted through the interfaces provided in `MFR`.
 
@@ -101,200 +87,435 @@ The `HAL` implementation is largely specific to the device/`OEM`.
 
 This interface should be scalable, extensible and maintainable.
 
-## Component Runtime Execution Requirements
+## Functional Overview
 
-This interface should manage system resources appropriately to avoid memory leaks and excessive resource utilization. Efficient memory management and resource cleanup is essential for stable and reliable execution. Additionally, it should meet specified performance requirements, including response time, throughput, and resource usage based on the underlying platform's capabilities. The interface should also be designed to scale effectively with increased load, being able to handle higher levels of usage without significant degradation in performance or stability.
+The MFR HAL provides the following functional areas:
 
-Failure to meet these requirements will likely result in undefined and unexpected behaviour.
+- Serialization data read/write
+- Firmware image flashing and verification
+- Image upgrade progress notification
+- PDRI deletion and image-bank scrubbing
+- Bootloader pattern and splash-screen configuration
+- Secure UTC time access
+- FSR flag access
+- Bootloader runtime configuration
+- Wi-Fi credential persistence
 
-### Initialization and Startup
+## Interface Definitions
 
-The `caller` is expected to have complete control over the life cycle of the `MFR` interface. The `caller` should initialize this interface by calling `mfr_init()` before invoking any other `API`. This `API` will initialize and configure the respective hardware. If the component or sub-system is not ready and cannot respond within a reasonable time, the `HAL` should return the corresponding error code. The `caller` is expected to handle the error codes returned from the HAL.
+### Implementation Requirements
 
+| Requirement | Description |
+| --- | --- |
+| HAL.MFR.1 | The implementation shall provide the supported MFR HAL APIs defined by the public headers. |
+| HAL.MFR.2 | APIs requiring initialization shall only be used after `mfr_init()`. |
+| HAL.MFR.3 | The implementation shall return the documented MFR/Wi-Fi status codes. |
+| HAL.MFR.4 | Serialized data shall be handled according to the `mfrSerializedData_t` contract. |
+| HAL.MFR.5 | Firmware upgrades shall use the alternate image bank. |
+| HAL.MFR.6 | The current image bank shall not be disturbed during an upgrade. |
+| HAL.MFR.7 | APIs documented as not thread safe shall be serialized by the caller. |
+| HAL.MFR.8 | Image-write state shall be recoverable across the documented DEEPSLEEP/wakeup transition. |
 
-### Threading Model
+### Initialization
 
-This interface is not required to be thread safe. `HAL` is allowed to create internal threads for its operation without excessively consuming system resources. Any signal handling scenarios should be handled gracefully and respective errors codes should be returned if any corresponding `API` fails.
+### Initialization
 
-### Process Model
+As part of the vendor layer initialization, the MFR interface shall be
+initialized through `mfr_init()`.
 
-This interface is required to support a single instantiation with a single process.
+The implementation shall initialize the internal components required to
+support the MFR APIs.
 
-### Memory Model
+Upon successful initialization, the MFR interface shall become operational
+and ready to service MFR API requests.
 
-For read and write operations, `caller` is responsible for memory management. For call back operations, `HAL` is responsible for memory management.
+If the MFR interface is already initialized, `mfr_init()` shall return
+`mfrERR_ALREADY_INITIALIZED`.
 
-### Power Management Requirements
+### System Context
 
-Although this interface is not required to be involved in any of the power management operations, the state transitions MUST not affect its operation. e.g. on resumption from a low power state (Deepsleep), the interface should operate as if no transition has occurred. Any flash operation which takes longer cycles should be handled properly during the deepsleep initiation.
+The MFR HAL provides an abstraction between RDK Middleware and the vendor-specific platform implementation.
 
+The vendor implementation is responsible for interfacing with platform components such as persistent storage, flash/image banks, bootloader, eMMC, TEE, and Wi-Fi credential storage.
 
-### Asynchronous Notification Model
-
- - This interface should support asynchronous notifications for image write operations.
- - `mfrWriteImage()` should facilitate asynchronous status notifications using the callback `mfrUpgradeStatusNotify_t`.
- - This interface is allowed to establish its own thread context for its operation, ensuring minimal impact on system resources.
- - Additionally, this interface is responsible for releasing the resources it creates for its operation once the respective operation concludes.
-
-### Blocking calls
-
-There are no blocking calls. Any synchronous call that can fail due to the lack of response from the connected device, should have a reasonable timeout period.
-
-### Internal Error Handling
-
-All the `APIs` should return errors synchronously as a return argument. `HAL` is responsible for handling system errors (e.g. out of memory) internally.
-
-### Persistence Model
-
-This interface holds the responsibility for persistently storing different serialized data as specified within the `mfrSerializedType_t` structure, `WIFI_DATA`, and temperature thresholds. Additionally, it facilitates the storage of bootable full stack images within their respective partitions. The related `APIs` enable reading and writing to respective configurations. The task of resetting configurations to their defaults will be handled by the `caller`.
-
-## Non-functional requirements
-
-Following non-functional requirements will be supported by the interface:
-
-### Logging and debugging requirements
-
-This interface is required to support DEBUG, INFO and ERROR messages. DEBUG and INFO is required to be disabled by default and enabled when needed.
-
-### Memory and performance requirements
-
-This interface will ensure optimal use of memory and CPU according to the specific capabilities of the system.
-
-### Quality Control
-
-- The interface will be expected to pass static analysis, our preferred tool is `Coverity`.
-- Have a zero-warning policy with regards to compiling. All warnings are required to be treated as errors.
-- Copyright validation is required to be performed, e.g.: `Black duck`, `FossID`.
-- Use of memory analysis tools like `Valgrind` are encouraged, to identify leaks/corruptions.
-- `HAL` Tests will endeavour to create worst case scenarios to assist investigations.
-- Improvements by any party to the testing suite are required to be fed back.
-
-### Licensing
-
-This interface is expected to be released under the Apache License 2.0.
-
-### Build Requirements
-
-The source code should build into a shared library and should be named as `libRDKMfrLib.so`. The build mechanism should be independent of Yocto.
-
-### Variability Management
-
- - Any changes in the `APIs` should be reviewed and approved by the component architects.
- - Any modification should support backward compatibility for the generic operations like image upgrade and downgrade
- - `MFR` should return the `mfrERR_OPERATION_NOT_SUPPORTED` error code, If any of the interface `APIs` are not supported by the underlying hardware
- - Providers of this interface should keep a well-defined version history for tracking alterations across diverse library versions, along with their corresponding verification results.
-
-
-### Platform or Product Customization
-
-Any potential platform specific customization opportunities need to be communicate well in advance to the respective architect team for the purpose of effective planning.
-
-
-## Interface API Documentation
-
-`API` documentation will be provided by Doxygen which will be generated from the header files.
-
-### Theory of operation and key concepts
-
-The interface is initialized by the `caller` who will have the complete control over the life cycle of this interface.
-
-  - `mfr_init()` initializes all the internal components which `MFR` is responsible for before making any other `API` calls. If `mfr_init()` call fails, the `HAL` should return the respective error code, so that the `caller` can retry the operation.
-
-  - For asynchronous image write operation use `mfrWriteImage()`
-
-  - For read serialization data use `mfrGetSerializedData()`
-
-  - For write serialization data use `mfrSetSerializedData()`
-
-  - For deleting the P-DRI image use `mfrDeletePDRI()`
-
-  - For deleting the platform image use `mfrScrubAllBanks()`
-
-  - For retrieving the cabinet temperature use `mfrGetTemperature()`
-
-  - For setting the temperature threshold use `mfrSetTempThresholds()`
-
-  - For reading the temperature threshold use `mfrGetTempThresholds()`
-
-  - For writing the `WIFI` credentials use `WIFI_SetCredentials()`
-
-  - For reading the `WIFI` credentials use `WIFI_GetCredentials()`
-
-  - For erasing the existing `WIFI` credentials use `WIFI_EraseAllData ()`
-
-  - For terminating the interface use `mfr_term()`
-
-
-### Diagrams
-
-#### Operational Call Sequence for MFR HAL
+RDK Middleware interacts only with the MFR HAL APIs and does not directly access these platform components.
 
 ```mermaid
-%%{ init : { "theme" : "default", "flowchart" : { "curve" : "stepBefore" }}}%%
-   sequenceDiagram
-    participant caller as caller
-    participant HAL as MFR HAL
-    caller->>HAL:mfr_init()
-    Note over HAL: Module initialization
-    HAL-->>caller:return
-    caller->>HAL:mfr_read()
-    Note over HAL: mfr_read operations like mfrGetSerializedData()
-    HAL-->>caller:return
-    caller->>HAL:mfr_write()
-    Note over HAL: mfr_write operations like mfrSetSerializedData(), mfrWriteImage(), mfrDeletePDRI(),<br>mfrScrubAllBanks(), mfrSetGammaCalibrationData()
-    HAL-->>caller:return
-    caller->>HAL:mfrSetBootloaderPattern()
-    Note over HAL: sets bootloader let pattern in the mfr persistance
-    HAL-->>caller:return
-    caller->>HAL:mfr_term()
-    Note over HAL: Module uninitialization
-    HAL-->>caller:return
- ```
+flowchart TD
+    Client[RDK Middleware]
+    MFR[MFR HAL]
+    Platform[Vendor MFR Implementation]
 
-#### Operational Call Sequence for `MFR WIFI` Functionalities
+    Storage[Persistent Storage]
+    Flash[Flash / Image Banks]
+    Bootloader[Bootloader]
+    EMMC[eMMC]
+    TEE[TEE]
+    WiFi[Wi-Fi Credential Storage]
+
+    Client -->|MFR API| MFR
+    MFR -->|Platform operations| Platform
+
+    Platform -->|Read / Write| Storage
+    Platform -->|Image operations| Flash
+    Platform -->|Boot configuration| Bootloader
+    Platform -->|FSR / Runtime data| EMMC
+    Platform -->|Secure time| TEE
+    Platform -->|Credentials| WiFi
+
+```
+### Resource Management
+
+### Resource Management
+
+The MFR HAL does not expose resource handles to the caller. The implementation
+may internally use resources such as persistent storage, flash, eMMC,
+bootloader interfaces, TEE services, or other platform-specific resources.
+
+These resources shall be managed internally by the MFR implementation.
+Resource acquisition, usage, and cleanup shall be handled by the
+implementation as required by the supported MFR APIs.
+
+No explicit resource acquisition or release API is defined by the MFR HAL.
+
+
+### Operation and Data Flow
+
+#### Serialization
+
+1. Caller requests a serialization type.
+2. MFR HAL accesses platform persistence.
+3. Serialized data is returned as a byte stream.
+4. Caller interprets the data according to the requested serialization type.
+
+#### Image Upgrade
+
+1. Caller requests an image upgrade.
+2. MFR validates the image and target.
+3. Boot parameters are updated as required.
+4. The alternate image bank is selected.
+5. The image is written and verified.
+6. Upgrade progress is reported through the optional callback.
+7. The operation completes or is reported as aborted.
+
+#### Wi-Fi Credentials
+
+1. Caller requests Wi-Fi credential read/write/erase.
+2. MFR accesses platform credential persistence.
+3. The operation result is returned through `WIFI_API_RESULT`.
+
+### Modes of Operation
+
+ No distinct operational modes are defined by the MFR HAL.
+
+ Platform implementations may restrict individual capabilities depending on\
+ platform support or build configuration.
+
+ ### Event Handling
+
+ The MFR HAL does not define a general event/listener mechanism.
+
+ Image upgrade progress may be reported through\
+ `mfrUpgradeStatusNotify_t`.
+
+ The callback reports upgrade progress and the final `COMPLETED` or `ABORTED`\
+ state.
+
+## State Machine / Lifecycle
+
+The MFR HAL has an initialization lifecycle:
 
 ```mermaid
-%%{ init : { "theme" : "default", "flowchart" : { "curve" : "stepBefore" }}}%%
-   sequenceDiagram
-    participant caller as Caller
-    participant HAL as MFR HAL
-    caller->>HAL:mfr_init()
-    Note over HAL: Module initialisation
-    HAL-->>caller:return
-    caller->>HAL:WIFI_SetCredentials()
-    Note over HAL: Set wifi credentials
-    HAL-->>caller:return
-    caller->>HAL:WIFI_GetCredentials()
-    Note over HAL: Get wifi credentials
-    HAL-->>caller:return
-    caller->>HAL:WIFI_EraseAllData ()
-    Note over HAL: Erase wifi credentials
-    HAL-->>caller:return
-    caller->>HAL:mfr_term()
-    Note over HAL: Module uninitialization
-    HAL-->>caller:return
+stateDiagram-v2
+    [*] --> Uninitialized
+    Uninitialized --> Initialized: mfr_init()
+    Initialized --> Uninitialized: mfr_term()
+```
+ Image upgrades maintain an independent progress state:
+
+```mermaid
+stateDiagram-v2
+    [*] --> NOT_STARTED
+    NOT_STARTED --> STARTED
+    STARTED --> VERIFYING
+    VERIFYING --> FLASHING
+    FLASHING --> REBOOTING
+    REBOOTING --> COMPLETED
+    STARTED --> ABORTED
+    VERIFYING --> ABORTED
+    FLASHING --> ABORTED
+    REBOOTING --> ABORTED
 ```
 
- #### Operational Call Sequence for `MFR Temperature` Functionalities
+## Data Format / Protocol Support
+
+The MFR HAL supports the data formats and types defined by the public MFR
+HAL headers.
+
+### Serialization Types
+
+| Enum | Description |
+| --- | --- |
+| `mfrSERIALIZED_TYPE_MANUFACTURER` | Manufacturer |
+| `mfrSERIALIZED_TYPE_MANUFACTUREROUI` | Manufacturer OUI |
+| `mfrSERIALIZED_TYPE_MODELNAME` | Model name |
+| `mfrSERIALIZED_TYPE_DESCRIPTION` | Device description |
+| `mfrSERIALIZED_TYPE_PRODUCTCLASS` | Product class |
+| `mfrSERIALIZED_TYPE_SERIALNUMBER` | Serial number |
+| `mfrSERIALIZED_TYPE_HARDWAREVERSION` | Hardware version |
+| `mfrSERIALIZED_TYPE_SOFTWAREVERSION` | Software version |
+| `mfrSERIALIZED_TYPE_PROVISIONINGCODE` | Provisioning code |
+| `mfrSERIALIZED_TYPE_FIRSTUSEDATE` | First-use date |
+| `mfrSERIALIZED_TYPE_DEVICEMAC` | Device MAC address |
+| `mfrSERIALIZED_TYPE_MOCAMAC` | MoCA MAC address |
+| `mfrSERIALIZED_TYPE_HDMIHDCP` | HDMI HDCP data |
+| `mfrSERIALIZED_TYPE_PDRIVERSION` | Primary DRI version |
+| `mfrSERIALIZED_TYPE_WIFIMAC` | Wi-Fi MAC address |
+| `mfrSERIALIZED_TYPE_BLUETOOTHMAC` | Bluetooth MAC address |
+| `mfrSERIALIZED_TYPE_WPSPIN` | WPS PIN |
+| `mfrSERIALIZED_TYPE_ETHERNETMAC` | Ethernet MAC address |
+| `mfrSERIALIZED_TYPE_ESTBMAC` | eSTB MAC address |
+| `mfrSERIALIZED_TYPE_RF4CEMAC` | RF4CE MAC address |
+| `mfrSERIALIZED_TYPE_PMI` | Product manufacturer information |
+| `mfrSERIALIZED_TYPE_HWID` | Hardware ID |
+| `mfrSERIALIZED_TYPE_MODELNUMBER` | Model number |
+| `mfrSERIALIZED_TYPE_SOC_ID` | SoC ID |
+| `mfrSERIALIZED_TYPE_IMAGENAME` | Flashed image name |
+| `mfrSERIALIZED_TYPE_IMAGETYPE` | Image type |
+| `mfrSERIALIZED_TYPE_BLVERSION` | Bootloader version |
+| `mfrSERIALIZED_TYPE_REGION` | Region |
+| `mfrSERIALIZED_TYPE_BDRIVERSION` | Backup DRI version |
+| `mfrSERIALIZED_TYPE_LED_WHITE_LEVEL` | LED white level |
+| `mfrSERIALIZED_TYPE_LED_PATTERN` | LED pattern |
+
+Panel-specific serialization types are available when
+`PANEL_SERIALIZATION_TYPES` is enabled.
+
+### Image Types
+
+| Enum | Description |
+| --- | --- |
+| `mfrIMAGE_TYPE_CDL` | CDL image |
+| `mfrIMAGE_TYPE_RCDL` | RCDL image |
+| `mfrUPGRADE_IMAGE_MONOLITHIC` | Monolithic image |
+| `mfrUPGRADE_IMAGE_PACKAGEHEADER` | Package-header image |
+
+### Upgrade Progress
+
+| Enum | Description |
+| --- | --- |
+| `mfrUPGRADE_PROGRESS_NOT_STARTED` | Upgrade not started |
+| `mfrUPGRADE_PROGRESS_STARTED` | Upgrade started |
+| `mfrUPGRADE_PROGRESS_ABORTED` | Upgrade aborted |
+| `mfrUPGRADE_PROGRESS_VERIFYING` | Image verification |
+| `mfrUPGRADE_PROGRESS_FLASHING` | Image flashing |
+| `mfrUPGRADE_PROGRESS_REBOOTING` | Image upgrade has completed and the platform is preparing for the bank transition/reboot |
+| `mfrUPGRADE_PROGRESS_COMPLETED` | Upgrade completed |
+
+### Bootloader Patterns
+
+| Enum | Description |
+| --- | --- |
+| `mfrBL_PATTERN_NORMAL` | Normal bootloader pattern |
+| `mfrBL_PATTERN_SILENT` | Silent bootloader pattern |
+| `mfrBL_PATTERN_SILENT_LED_ON` | Silent pattern with LED enabled |
+| `mfrBL_PATTERN_LOGO_DISABLED` | Logo disabled |
+
+### Wi-Fi Data Types
+
+| Enum | Description |
+| --- | --- |
+| `WIFI_DATA_UNKNOWN` | Unknown data type |
+| `WIFI_DATA_SSID` | SSID |
+| `WIFI_DATA_PASSWORD` | Password |
+
+The authoritative enum definitions and values are provided by `mfrTypes.h`
+and `mfr_wifi_types.h`. Enum ordering and values that form part of the
+interface contract SHALL remain unchanged.
+
+###  Operational Sequence
+
+The Operational Sequence describes the normal lifecycle of the MFR HAL, from initialization through API operation to termination.
+```mermaid
+sequenceDiagram
+    participant Client as RDK Middleware
+    participant HAL as MFR HAL
+    participant Platform as Platform Implementation
+    participant Storage as Platform Storage
+
+    Client->>HAL: mfr_init()
+    HAL->>Platform: Initialize platform resources
+    Platform->>Storage: Initialize / access storage
+    Storage-->>Platform: Initialization result
+    Platform-->>HAL: Initialization result
+    HAL-->>Client: mfr_init() result
+
+    Client->>HAL: MFR API Request
+    HAL->>Platform: Platform operation
+    Platform->>Storage: Read / Write data
+    Storage-->>Platform: Data / Result
+    Platform-->>HAL: Data / Result
+    HAL-->>Client: API result / data
+
+    Client->>HAL: mfr_term()
+    HAL->>Platform: Terminate
+    Platform-->>HAL: Termination result
+    HAL-->>Client: mfr_term() result
+```
+#### Image Upgrade Sequence
+
+The Image Upgrade Sequence describes writing and verifying a firmware image in the alternate image bank and preparing the system for the bank transition.
+```mermaid
+sequenceDiagram
+    participant Client as RDK Middleware
+    participant HAL as MFR HAL
+    participant Flash as Alternate Image Bank
+    participant Boot as Bootloader
+
+    Client->>HAL: mfrWriteImage()
+    HAL->>HAL: Validate image
+    HAL->>HAL: Validate target bank
+
+    HAL-->>Client: Upgrade STARTED
+
+    HAL->>Flash: Write image
+    Flash-->>HAL: Write result
+
+    HAL-->>Client: Upgrade FLASHING
+
+    HAL->>Flash: Verify image
+    Flash-->>HAL: Verification result
+
+    alt Image verification successful
+        HAL-->>Client: Upgrade VERIFYING
+        HAL->>Boot: Update boot parameters
+        Boot-->>HAL: Boot configuration result
+        HAL->>Boot: Prepare bank transition
+        Boot-->>HAL: Transition prepared
+        HAL-->>Client: Upgrade COMPLETED
+    else Image verification failed
+        HAL-->>Client: Upgrade ABORTED
+    end
+```
+#### Wi-Fi Credential Sequence
+
+The Wi-Fi Credential Sequence describes storing, retrieving, and erasing Wi-Fi credentials through MFR persistent storage.
+```mermaid
+
+sequenceDiagram
+    participant Client as RDK Middleware
+    participant HAL as MFR HAL
+    participant Storage as MFR Persistent Storage
+
+    Client->>HAL: WIFI_SetCredentials()
+    HAL->>Storage: Store SSID / Password
+    Storage-->>HAL: Result
+    HAL-->>Client: Result
+
+    Client->>HAL: WIFI_GetCredentials()
+    HAL->>Storage: Read credentials
+    Storage-->>HAL: SSID / Password
+    HAL-->>Client: Credentials / Result
+
+    Client->>HAL: WIFI_EraseAllData()
+    HAL->>Storage: Erase Wi-Fi data
+    Storage-->>HAL: Result
+    HAL-->>Client: Result
+```
+#### Temperature Management Sequence
+
+The Temperature Management Sequence describes retrieving the current platform
+temperature and managing the configured temperature thresholds.
 
 ```mermaid
-%%{ init : { "theme" : "default", "flowchart" : { "curve" : "stepBefore" }}}%%
-   sequenceDiagram
-    participant caller as Caller
+sequenceDiagram
+    participant Client as RDK Middleware
     participant HAL as MFR HAL
-    caller->>HAL:mfr_init()
-    Note over HAL: Module initialisation
-    HAL-->>caller:return
-    caller->>HAL:mfrGetTemperature()
-    Note over HAL: Get current temperature of the core
-    HAL-->>caller:return
-    caller->>HAL:mfrSetTempThresholds()
-    Note over HAL: Set the temperature thresholds
-    HAL-->>caller:return
-    caller->>HAL:mfrGetTempThresholds ()
-    Note over HAL: Get the temperature thresholds
-    HAL-->>caller:return
-    caller->>HAL:mfr_term()
-    Note over HAL: Module de-initialization
-    HAL-->>caller:return
- ```
+    participant Platform as Platform Temperature Interface
+
+    Client->>HAL: mfrGetTemperature()
+    HAL->>Platform: Read temperature
+    Platform-->>HAL: Temperature value
+    HAL-->>Client: Temperature / result
+
+    Client->>HAL: mfrSetTempThresholds()
+    HAL->>Platform: Set temperature thresholds
+    Platform-->>HAL: Result
+    HAL-->>Client: Result
+
+    Client->>HAL: mfrGetTempThresholds()
+    HAL->>Platform: Read temperature thresholds
+    Platform-->>HAL: Threshold values
+    HAL-->>Client: Thresholds / result
+```
+#### Serialization Data Sequence
+
+The Serialization Data Sequence describes reading and writing manufacturer and device-specific serialization data through MFR persistent storage.
+```mermaid
+
+sequenceDiagram
+    participant Client as RDK Middleware
+    participant HAL as MFR HAL
+    participant Storage as Persistent Storage
+
+    Client->>HAL: mfrGetSerializedData()
+    HAL->>Storage: Read serialization data
+    Storage-->>HAL: Serialization data
+    HAL-->>Client: Data / Result
+
+    Client->>HAL: mfrSetSerializedData()
+    HAL->>Storage: Write serialization data
+    Storage-->>HAL: Write result
+    HAL-->>Client: Result
+```
+#### Bootloader Configuration Sequence
+
+The Bootloader Configuration Sequence describes the configuration of
+bootloader-related parameters through the MFR HAL.
+
+```mermaid
+sequenceDiagram
+    participant Client as RDK Middleware
+    participant HAL as MFR HAL
+    participant Storage as MFR Persistence
+    participant Boot as Bootloader Interface
+
+    Client->>HAL: mfrSetBootloaderPattern()
+    HAL->>Storage: Store bootloader pattern
+    Storage-->>HAL: Storage result
+    HAL-->>Client: Result
+
+    Client->>HAL: Splash-screen configuration API
+    HAL->>Storage: Store / clear splash-screen data
+    Storage-->>HAL: Storage result
+    HAL-->>Client: Result
+
+    Client->>HAL: Bootloader blocklist/configuration API
+    HAL->>Storage: Store runtime configuration
+    Storage-->>HAL: Storage result
+    HAL-->>Client: Result
+
+    HAL->>Boot: Apply / prepare bootloader configuration
+    Boot-->>HAL: Configuration result
+```
+### Error Handling
+
+ The implementation shall return the documented error for each detected\
+ condition.
+
+ | Category | Error |
+| --- | --- |
+| Initialization | `mfrERR_NOT_INITIALIZED` |
+| Invalid parameter | `mfrERR_INVALID_PARAM` |
+| Memory | `mfrERR_MEMORY_EXHAUSTED` |
+| Flash read | `mfrERR_FLASH_READ_FAILED` |
+| Flash write | `mfrERR_WRITE_FLASH_FAILED` |
+| Flash verification | `mfrERR_FLASH_VERIFY_FAILED` |
+| CRC | `mfrERR_FAILED_CRC_CHECK` |
+| Invalid image | `mfrERR_BAD_IMAGE_HEADER` |
+| Invalid signature | `mfrERR_IMPROPER_SIGNATURE` |
+| Image too large | `mfrERR_IMAGE_TOO_BIG` |
+| Invalid signing time | `mfrERR_FAILED_INVALID_SIGNING_TIME` |
+| Older SVN | `mfrERR_FAILED_IMAGE_SVN_OLDER` |
+| Older signing time | `mfrERR_FAILED_IMAGE_SIGNING_TIME_OLDER` |
+| Image file | `mfrERR_IMAGE_FILE_OPEN_FAILED` |
