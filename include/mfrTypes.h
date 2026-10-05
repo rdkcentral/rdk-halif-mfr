@@ -387,6 +387,7 @@ mfrError_t mfrGetSerializedData( mfrSerializedType_t type,  mfrSerializedData_t 
 
 /**
  * @brief Sets the read write Serialization data on device
+ * @deprecated This API is not required by the current MW integration.
  *
  * @param [in] type :  specifies the serialized data type to write. @see mfrSerializedType_t
  * @param [in] data :  serialized data to set for the specific type requested. (buffer location, length, and func to free the buffer). @see mfrSerializedData_t
@@ -474,6 +475,7 @@ mfrError_t mfrDeletePDRI(void);
 
 /**
  * @brief Deletes the platform images. Deletes the main image from primary and secondary bank
+ * @deprecated This API is not required by the current MW integration.
  * 
  * @return mfrError_t                      - Status
  * @retval mfrERR_NONE                     - Success
@@ -545,7 +547,7 @@ mfrError_t mfrClearBlSplashScreen(void);
 /**
 * @brief API to retrive the secure time from TEE
 *
-* @param [in] params : unit32 timeptr to get the UTC time in seconds
+* @param [out] timeptr : pointer receiving the UTC time in seconds
 *
 * @return Error Code:  Return mfrERR_NONE if operation is successful, mfrERR_GENERAL if it fails
 */
