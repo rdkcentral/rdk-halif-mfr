@@ -331,6 +331,11 @@ typedef struct _mfrUpgradeStatusNotify_t
    int interval;                                          ///< number of seconds between two callbacks. 0 means invoking callback only once to report final upgrade result
 } mfrUpgradeStatusNotify_t;
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 /**
  * @brief Initializes the MFR library
@@ -614,6 +619,10 @@ mfrError_t mfr_setConfigData(unsigned int blocklist);
  *     - mfrERR_GENERAL  : Operation failed
  */
 mfrError_t mfr_getConfigData(unsigned int *blocklist);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

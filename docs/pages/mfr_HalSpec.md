@@ -322,7 +322,7 @@ Panel-specific serialization types are available when
 | `mfrUPGRADE_PROGRESS_ABORTED` | Upgrade aborted |
 | `mfrUPGRADE_PROGRESS_VERIFYING` | Image verification |
 | `mfrUPGRADE_PROGRESS_FLASHING` | Image flashing |
-| `mfrUPGRADE_PROGRESS_REBOOTING` | Image upgrade has completed and the platform is preparing for the bank transition/reboot |
+| `mfrUPGRADE_PROGRESS_REBOOTING` | Intermediate state while the platform prepares for the bank transition/reboot |
 | `mfrUPGRADE_PROGRESS_COMPLETED` | Upgrade completed |
 
 ### Bootloader Patterns
