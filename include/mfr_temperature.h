@@ -154,7 +154,34 @@ mfrError_t mfrSetTempThresholds(int tempHigh, int tempCritical);
  */
 mfrError_t mfrGetTempThresholds(int *tempHigh, int *tempCritical);
 
+/**
+ * @brief Get clock speeds for this device for the given states
+ *
+ * @param [out] cpu_rate_Normal  The clock rate to be used when in the 'normal' state
+ * @param [out] cpu_rate_Scaled  The clock rate to be used when in the 'scaled' state
+ * @param [out] cpu_rate_Minimal The clock rate to be used when in the 'minimal' state
+ *
+ * @return Error Code
+ */
+mfrError_t mfrDetemineClockSpeeds(uint32_t *cpu_rate_Normal, uint32_t *cpu_rate_Scaled, uint32_t *cpu_rate_Minimal);
 
+
+/**
+ * @brief This API sets the clock speed of the CPU.
+ * @param [in] speed  One of the predefined parameters to set the clock speed.
+ *
+ * @return Error Code
+ */
+mfrError_t mfrSetClockSpeed(uint32_t speed);
+
+
+/**
+ * @brief This API returns the clock speed of the CPU
+ * @param [out] speed One of the predefined parameters
+ *
+ * @return Error Code
+ */
+mfrError_t mfrGetClockSpeed(uint32_t *speed);
 #ifdef __cplusplus
 }
 #endif

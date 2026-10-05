@@ -200,7 +200,7 @@ typedef enum _mfrSerializedType_t
     /* led data */
     mfrSERIALIZED_TYPE_LED_WHITE_LEVEL,              ///< led white level field. String value
     mfrSERIALIZED_TYPE_LED_PATTERN,                  ///< led pattern field. String value
-    mfrSERIALIZED_TYPE_MAX,                          ///< End of the base serialization type range; panel and platform-specific values follow
+    mfrSERIALIZED_TYPE_MAX,                          ///< End of the common serialization type range; panel and vendor-specific values follow
 #ifdef PANEL_SERIALIZATION_TYPES
     //As MFR HAL is a precompiled binary across all existing platforms, a distinct region is allocated for panel-based enums, beginning at 0x51. 
     //This approach allows us to utilize the same type field for corresponding APIs.
@@ -256,10 +256,10 @@ typedef enum _mfrSerializedType_t
     mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_BOOST_SUPERCOLD,
     mfrSERIALIZED_TYPE_PANEL_GAMMA_CALIBRATED_SUPERCOLD,
     mfrSERIALIZED_TYPE_PANEL_GAMMA_CALIBRATED_BOOST_SUPERCOLD,
-    mfrSERIALIZED_TYPE_PANEL_MAX,
+    mfrSERIALIZED_TYPE_PANEL_MAX,                    ///< End of the panel serialization type range
 #endif
-    mfrSERIALIZED_TYPE_SKYMODELNAME = 8000,         //Sky specific MFRLib flags
-    mfrSERIALIZED_TYPE_DE_SERIAL_PREFIX,            //Sky specific MFRLib flags
+    mfrSERIALIZED_TYPE_VENDOR_PARAM = 8000,         ///< Vendor-specific serialization parameter
+    mfrSERIALIZED_TYPE_VENDOR_PARAM_MAX,            ///< End of the vendor-specific serialization parameter range
 } mfrSerializedType_t;
 
 
