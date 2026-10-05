@@ -292,6 +292,18 @@ HAL headers.
 Panel-specific serialization types are available when
 `PANEL_SERIALIZATION_TYPES` is enabled.
 
+## Notes
+
+- `mfrSERIALIZED_TYPE_MAX` marks the end of the common serialization range;
+    it is not the final value in the enum.
+- When `PANEL_SERIALIZATION_TYPES` is enabled,
+    `mfrSERIALIZED_TYPE_PANEL_MAX` marks the end of the panel serialization
+    range.
+- Vendor-specific serialization parameters begin at value `8000` with
+    `mfrSERIALIZED_TYPE_VENDOR_MODEL_NAME` and include
+    `mfrSERIALIZED_TYPE_VENDOR_SERIAL_PREFIX`; the range ends at
+    `mfrSERIALIZED_TYPE_VENDOR_MAX`.
+
 ### Image Types
 
 | Enum | Description |
@@ -363,142 +375,7 @@ sequenceDiagram
     Platform-->>HAL: Termination result
     HAL-->>Client: mfr_term() result
 ```
-#### Image Upgrade Sequence
 
-The Image Upgrade Sequence describes writing and verifying a firmware image in the alternate image bank and preparing the system for the bank transition.
-```mermaid
-sequenceDiagram
-    participant Client as RDK Middleware
-    participant HAL as MFR HAL
-    participant Flash as Alternate Image Bank
-    participant Boot as Bootloader
-
-    Client->>HAL: mfrWriteImage()
-    HAL->>HAL: Validate image
-    HAL->>HAL: Validate target bank
-
-    HAL-->>Client: Upgrade STARTED
-
-    HAL->>Flash: Write image
-    Flash-->>HAL: Write result
-
-    HAL-->>Client: Upgrade FLASHING
-
-    HAL->>Flash: Verify image
-    Flash-->>HAL: Verification result
-
-    alt Image verification successful
-        HAL-->>Client: Upgrade VERIFYING
-        HAL->>Boot: Update boot parameters
-        Boot-->>HAL: Boot configuration result
-        HAL->>Boot: Prepare bank transition
-        Boot-->>HAL: Transition prepared
-        HAL-->>Client: Upgrade COMPLETED
-    else Image verification failed
-        HAL-->>Client: Upgrade ABORTED
-    end
-```
-#### Wi-Fi Credential Sequence
-
-The Wi-Fi Credential Sequence describes storing, retrieving, and erasing Wi-Fi credentials through MFR persistent storage.
-```mermaid
-
-sequenceDiagram
-    participant Client as RDK Middleware
-    participant HAL as MFR HAL
-    participant Storage as MFR Persistent Storage
-
-    Client->>HAL: WIFI_SetCredentials()
-    HAL->>Storage: Store SSID / Password
-    Storage-->>HAL: Result
-    HAL-->>Client: Result
-
-    Client->>HAL: WIFI_GetCredentials()
-    HAL->>Storage: Read credentials
-    Storage-->>HAL: SSID / Password
-    HAL-->>Client: Credentials / Result
-
-    Client->>HAL: WIFI_EraseAllData()
-    HAL->>Storage: Erase Wi-Fi data
-    Storage-->>HAL: Result
-    HAL-->>Client: Result
-```
-#### Temperature Management Sequence
-
-The Temperature Management Sequence describes retrieving the current platform
-temperature and managing the configured temperature thresholds.
-
-```mermaid
-sequenceDiagram
-    participant Client as RDK Middleware
-    participant HAL as MFR HAL
-    participant Platform as Platform Temperature Interface
-
-    Client->>HAL: mfrGetTemperature()
-    HAL->>Platform: Read temperature
-    Platform-->>HAL: Temperature value
-    HAL-->>Client: Temperature / result
-
-    Client->>HAL: mfrSetTempThresholds()
-    HAL->>Platform: Set temperature thresholds
-    Platform-->>HAL: Result
-    HAL-->>Client: Result
-
-    Client->>HAL: mfrGetTempThresholds()
-    HAL->>Platform: Read temperature thresholds
-    Platform-->>HAL: Threshold values
-    HAL-->>Client: Thresholds / result
-```
-#### Serialization Data Sequence
-
-The Serialization Data Sequence describes reading and writing manufacturer and device-specific serialization data through MFR persistent storage.
-```mermaid
-
-sequenceDiagram
-    participant Client as RDK Middleware
-    participant HAL as MFR HAL
-    participant Storage as Persistent Storage
-
-    Client->>HAL: mfrGetSerializedData()
-    HAL->>Storage: Read serialization data
-    Storage-->>HAL: Serialization data
-    HAL-->>Client: Data / Result
-
-    Client->>HAL: mfrSetSerializedData()
-    HAL->>Storage: Write serialization data
-    Storage-->>HAL: Write result
-    HAL-->>Client: Result
-```
-#### Bootloader Configuration Sequence
-
-The Bootloader Configuration Sequence describes the configuration of
-bootloader-related parameters through the MFR HAL.
-
-```mermaid
-sequenceDiagram
-    participant Client as RDK Middleware
-    participant HAL as MFR HAL
-    participant Storage as MFR Persistence
-    participant Boot as Bootloader Interface
-
-    Client->>HAL: mfrSetBootloaderPattern()
-    HAL->>Storage: Store bootloader pattern
-    Storage-->>HAL: Storage result
-    HAL-->>Client: Result
-
-    Client->>HAL: Splash-screen configuration API
-    HAL->>Storage: Store / clear splash-screen data
-    Storage-->>HAL: Storage result
-    HAL-->>Client: Result
-
-    Client->>HAL: Bootloader blocklist/configuration API
-    HAL->>Storage: Store runtime configuration
-    Storage-->>HAL: Storage result
-    HAL-->>Client: Result
-
-    HAL->>Boot: Apply / prepare bootloader configuration
-    Boot-->>HAL: Configuration result
-```
 ### Error Handling
 
  The implementation shall return the documented error for each detected\
@@ -520,3 +397,9 @@ sequenceDiagram
 | Older SVN | `mfrERR_FAILED_IMAGE_SVN_OLDER` |
 | Older signing time | `mfrERR_FAILED_IMAGE_SIGNING_TIME_OLDER` |
 | Image file | `mfrERR_IMAGE_FILE_OPEN_FAILED` |
+
+### Deprecated ABI Compatibility APIs
+
+- `mfrSetSerializedData()` and `mfrScrubAllBanks()` remain declared for ABI
+    compatibility but are deprecated and are not required by the current MW
+    integration.
