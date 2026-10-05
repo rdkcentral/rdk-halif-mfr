@@ -258,8 +258,9 @@ typedef enum _mfrSerializedType_t
     mfrSERIALIZED_TYPE_PANEL_GAMMA_CALIBRATED_BOOST_SUPERCOLD,
     mfrSERIALIZED_TYPE_PANEL_MAX,                    ///< End of the panel serialization type range
 #endif
-    mfrSERIALIZED_TYPE_VENDOR_PARAM = 8000,         ///< Vendor-specific serialization parameter
-    mfrSERIALIZED_TYPE_VENDOR_PARAM_MAX,            ///< End of the vendor-specific serialization parameter range
+    mfrSERIALIZED_TYPE_VENDOR_MODEL_NAME = 8000,         ///< Vendor-specific serialization parameter
+    mfrSERIALIZED_TYPE_VENDOR_SERIAL_PREFIX,
+    mfrSERIALIZED_TYPE_VENDOR_MAX            ///< End of the vendor-specific serialization parameter range
 } mfrSerializedType_t;
 
 
