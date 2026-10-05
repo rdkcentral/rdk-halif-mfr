@@ -101,9 +101,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <sys/types.h>
-#include <pthread.h>
-
 
 /**
  * @brief MFR status codes.
@@ -203,7 +200,7 @@ typedef enum _mfrSerializedType_t
     /* led data */
     mfrSERIALIZED_TYPE_LED_WHITE_LEVEL,              ///< led white level field. String value
     mfrSERIALIZED_TYPE_LED_PATTERN,                  ///< led pattern field. String value
-    mfrSERIALIZED_TYPE_MAX,                          ///< Out of range - required to be the last item of the enum
+    mfrSERIALIZED_TYPE_MAX,                          ///< End of the base serialization type range; panel and platform-specific values follow
 #ifdef PANEL_SERIALIZATION_TYPES
     //As MFR HAL is a precompiled binary across all existing platforms, a distinct region is allocated for panel-based enums, beginning at 0x51. 
     //This approach allows us to utilize the same type field for corresponding APIs.
@@ -328,8 +325,8 @@ typedef struct _mfrUpgradeStatus_t
  */
 typedef struct _mfrUpgradeStatusNotify_t
 {
-   void * cbData;                                         ///< Upgrade status notify call back data
-   void (*cb) (mfrUpgradeStatus_t * status);                ///< Upgrade status notify call back 
+    void * cbData;                                         ///< Upgrade status notify call back data
+    void (*cb) (mfrUpgradeStatus_t * status);                ///< Upgrade status notify call back
    int interval;                                          ///< number of seconds between two callbacks. 0 means invoking callback only once to report final upgrade result
 } mfrUpgradeStatusNotify_t;
 
@@ -369,7 +366,7 @@ mfrError_t mfr_term( void );
  * 
  * 
  * @param [in] type :  specifies the serialized data type to be read. @see mfrSerializedType_t
- * @param [in] data :  serialized data for the specific type requested. (buffer location, length, and func to free the buffer). @see mfrSerializedData_t
+ * @param [out] data :  serialized data for the specific type requested. (buffer location, length, and func to free the buffer). @see mfrSerializedData_t
  *
  * @return mfrError_t                      - Status
  * @retval mfrERR_NONE                     - Success
@@ -593,47 +590,9 @@ mfrError_t mfrSetFSRflag(uint16_t *newFsrFlag);
 mfrError_t mfrGetFSRflag(uint16_t *newFsrFlag);
 
 /**
-* @brief API to retrive the secure time from TEE
-*
-* @param [in] params : unit32 timeptr to get the UTC time in seconds
-*
-* @return Error Code:  Return mfrERR_NONE if operation is successful, mfrERR_GENERAL if it fails
-*/
-mfrError_t mfrGetSecureTime(uint32_t *timeptr);
-
-/**
-* @brief API to set the secure time from TEE
-*
-* @param [in] params : unit32 timeptr to set the UTC time in seconds
-*
-* @return Error Code:  Return mfrERR_NONE if operation is successful, mfrERR_GENERAL if it fails
-*/
-mfrError_t mfrSetSecureTime(uint32_t *timeptr);
-
-
-/**
-* @brief API to set the fsr flag into the emmc raw area
-*
-* @param [in] params : unit32 fsrflag to set the FSR flag
-*
-* @return Error Code:  Return mfrERR_NONE if operation is successful, mfrERR_GENERAL if it fails
-*/
-mfrError_t mfrSetFSRflag(uint16_t *newFsrFlag);
-
-
-/**
-* @brief API to get the fsr flag from emmc
-*
-* @param [in] params : unit32 fsrflag to get the FSR flag
-*
-* @return Error Code:  Return mfrERR_NONE if operation is successful, mfrERR_GENERAL if it fails
-*/
-mfrError_t mfrGetFSRflag(uint16_t *newFsrFlag);
-
-/**
 * @brief API to set the blocklist data to BL runtime data block of emmc
 *
-* @param [in] params : unsigned integer pointer with the blocklist value
+* @param [in] blocklist : unsigned integer value containing the blocklist data
 *
 * @return Error Code:  Return mfrERR_NONE if operation is successful, mfrERR_GENERAL if it fails
 */
@@ -643,19 +602,9 @@ mfrError_t mfr_setConfigData(unsigned int blocklist);
 /**
  * @brief API to get blocklist data from the BL runtime data block in eMMC.
  *
- * @details
- * This API expects a pointer to a structure of type
- * IARM_Bus_MFRLib_Platformblockdata_Param_t, which contains the blocklist
- * value. Although the function parameter is declared as 'unsigned int *' for
- * backward compatibility, the caller actually provides a pointer to the
- * platform-block-data structure, and the API writes the blocklist value into
- * its 'blocklist' field.
-
-*
  * @param[in,out] blocklist
- *     Pointer used to carry the blocklist output value.
- *     In practice, this corresponds to &params->blocklist from the
- *     IARM_Bus_MFRLib_Platformblockdata_Param_t structure.
+ *     Pointer to storage that receives the blocklist value. When the caller
+ *     uses a platform-block-data structure, pass &params->blocklist.
  *
  * @return mfrError_t
  *     - mfrERR_NONE     : Operation successful
