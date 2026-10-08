@@ -162,6 +162,7 @@ mfrError_t mfrGetTempThresholds(int *tempHigh, int *tempCritical);
  * @param [out] cpu_rate_Minimal The clock rate to be used when in the 'minimal' state
  *
  * @return Error Code
+ 
  */
 mfrError_t mfrDetemineClockSpeeds(uint32_t *cpu_rate_Normal, uint32_t *cpu_rate_Scaled, uint32_t *cpu_rate_Minimal);
 
@@ -170,7 +171,12 @@ mfrError_t mfrDetemineClockSpeeds(uint32_t *cpu_rate_Normal, uint32_t *cpu_rate_
  * @brief This API sets the clock speed of the CPU.
  * @param [in] speed  One of the predefined parameters to set the clock speed.
  *
- * @return Error Code
+ * @return    mfrError_t                     - Status
+ * @retval    mfrERR_NONE                    - Success
+ * @retval    mfrERR_NOT_INITIALIZED         - Module is not initialised
+ * @retval    mfrERR_INVALID_PARAM           - Parameter passed to this function is invalid also this code will be returned if no value exists in the sys entry
+ * @retval    mfrERR_OPERATION_NOT_SUPPORTED - Clock speed configuration is not supported by the platform/vendor.
+ * 
  */
 mfrError_t mfrSetClockSpeed(uint32_t speed);
 
@@ -179,9 +185,14 @@ mfrError_t mfrSetClockSpeed(uint32_t speed);
  * @brief This API returns the clock speed of the CPU
  * @param [out] speed One of the predefined parameters
  *
- * @return Error Code
+ * @return    mfrError_t                     - Status
+ * @retval    mfrERR_NONE                    - Success
+ * @retval    mfrERR_NOT_INITIALIZED         - Module is not initialised
+ * @retval    mfrERR_INVALID_PARAM           - Parameter passed to this function is invalid also this code will be returned if no value exists in the sys entry
+ * @retval    mfrERR_OPERATION_NOT_SUPPORTED - Clock speed configuration is not supported by the platform/vendor.
  */
 mfrError_t mfrGetClockSpeed(uint32_t *speed);
+
 #ifdef __cplusplus
 }
 #endif
