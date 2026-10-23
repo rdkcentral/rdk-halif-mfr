@@ -89,7 +89,6 @@
  * - LUX:      Unit of luminance or illumination of a one metre square area
  * - PCI:      Peripheral component interconnect
  * - AV:       Audio video
- * - TPV:      TPV technology limited
  * - FTA:      Factory test app
  * - WPS:      Wi-Fi protected setup
  */
@@ -257,7 +256,7 @@ mfrError_t mfr_term( void );
  * @brief Retrieves serialized Read-Only data from device
  * 
  * 
- * @param [in] type :  serialization type name configured in mfr-serialization.yaml. Must not be NULL.
+ * @param [in] type :  serialization type name configured in config/mfr_serialization.yaml. Must not be NULL.
  * @param [out] data :  serialized data for the specific type requested. (buffer location, length, and func to free the buffer). @see mfrSerializedData_t
  *
  * @return mfrError_t                      - Status
@@ -282,7 +281,7 @@ mfrError_t mfrGetSerializedData( const char *type,  mfrSerializedData_t *data );
  * @brief Sets the read write Serialization data on device
  * @deprecated This API is not required by the current MW integration.
  *
- * @param [in] type :  serialization type name configured in mfr-serialization.yaml. Must not be NULL.
+ * @param [in] type :  serialization type name configured in config/mfr_serialization.yaml. Must not be NULL.
  * @param [in] data :  serialized data to set for the specific type requested. (buffer location, length, and func to free the buffer). @see mfrSerializedData_t
  *
  * @return mfrError_t                       - Status

@@ -256,7 +256,7 @@ HAL headers.
 ### Serialization Types
 
 Serialization types are case-sensitive strings configured in
-`config/mfr-serialization.yaml`. The configured string is passed to
+`config/mfr_serialization.yaml`. The configured string is passed to
 `mfrGetSerializedData()` or `mfrSetSerializedData()` as the `type` parameter.
 
 | Type | Category | Description |
@@ -269,11 +269,33 @@ Serialization types are case-sensitive strings configured in
 | `deviceMac` | Optional | Device MAC address |
 | `productClass` | Optional | Product class |
 
-## Notes
+> **Note:** Each platform may define vendor- and operator-specific
+> serialization configuration and shall maintain it in the corresponding
+> platform-specific repository.
+
+### YAML Ownership and Build-Time Usage
+
+- The platform team owns the platform serialization profile and is responsible
+    for maintaining its supported type names as platform capabilities change.
+- The platform team shall review profile changes with the corresponding MFR
+    implementation changes so every configured type has an implementation and
+    obsolete types are removed deliberately.
+- The platform build shall consume the selected YAML profile at build time to
+    configure or generate the set of serialization type strings supported by
+    that image. Platform teams are responsible for integrating this step into
+    their build recipe and packaging any generated artifacts required by their
+    implementation.
+- The YAML profile is build input, not a replacement for API validation. The
+    implementation shall still validate the `type` argument and return the
+    documented error when a type is invalid or unsupported.
+
+
+### Serialization Notes
 
 - Operator and vendor serialization types may extend the `serialization` list.
-- Implementations shall return `mfrERR_INVALID_PARAM` for a NULL, empty, or
-    unsupported serialization type string.
+- Implementations shall return `mfrERR_INVALID_PARAM` for a NULL or empty type
+    string and `mfrERR_OPERATION_NOT_SUPPORTED` for an unrecognized or
+    unsupported type string.
 
 ### Image Types
 
