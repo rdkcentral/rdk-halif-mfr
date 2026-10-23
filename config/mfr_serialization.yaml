@@ -1,0 +1,143 @@
+#** *****************************************************************************
+# *
+# * If not stated otherwise in this file or this component's LICENSE file the
+# * following copyright and licenses apply:
+# *
+# * Copyright 2026 RDK Management
+# *
+# * Licensed under the Apache License, Version 2.0 (the "License");
+# * you may not use this file except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# * http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *
+#** ******************************************************************************
+
+# HAL Serialization Profile for MFR
+
+mfr:
+  version: 1
+  serialization:
+    # Core serialization types
+    - manufacturer
+    - manufacturerOui
+    - modelName
+    - description
+    - productClass
+    - serialNumber
+    - hardwareVersion
+    - softwareVersion
+    - provisioningCode
+    - firstUseDate
+    - deviceMac
+    - mocaMac
+    - hdmiHdcp
+    - pdriVersion
+    - wifiMac
+    - bluetoothMac
+    - wpsPin
+    - manufacturingSerialNumber
+    - ethernetMac
+    - estbMac
+    - rf4ceMac
+    - provisionedModelName
+    - pmi
+    - hwId
+    - modelNumber
+    - socId
+    - imageName
+    - imageType
+    - blVersion
+    - region
+    - bdriVersion
+    - ledWhiteLevel
+    - ledPattern
+    - deviceMac
+    - productClass
+
+    # Operator serialization types
+    - manufacturerOui
+    - description
+    - provisioningCode
+    - firstUseDate
+    - mocaMac
+    - hdmiHdcp
+    - pdriVersion
+    - wifiMac
+    - bluetoothMac
+    - wpsPin
+    - manufacturingSerialNumber
+    - ethernetMac
+    - estbMac
+    - rf4ceMac
+    - provisionedModelName
+    - pmi
+    - hwId
+    - modelNumber
+    - socId
+    - imageName
+    - imageType
+    - blVersion
+    - region
+    - bdriVersion
+    - ledWhiteLevel
+    - ledPattern
+
+    # Panel serialization types
+    - coreBoardSerialNumber
+    - factoryBoot
+    - countryCode
+    - languageCode
+    - manufacturerData
+    - cpdSize
+    - panelId
+    - panelType
+    - panelHdmiWbDataNormal
+    - panelHdmiWbDataCold
+    - panelHdmiWbDataWarm
+    - panelHdmiWbDataUser
+    - panelTvWbDataNormal
+    - panelTvWbDataCold
+    - panelTvWbDataWarm
+    - panelTvWbDataUser
+    - panelAvWbDataNormal
+    - panelAvWbDataCold
+    - panelAvWbDataWarm
+    - panelAvWbDataUser
+    - panelDtbVersion
+    - panelDtbDataSize
+    - panelDtbData
+    - panelDataFunctionStatus
+    - panelDataAgeingTime
+    - panelDataPowerOnTime
+    - panelDataBacklightTime
+    - panelDataValid
+    - panelDataTpvAppVersion
+    - panelAlsCalibrationIndex0
+    - panelAlsCalibrationIndex1
+    - panelGammaCalibratedNormal
+    - panelGammaCalibratedCold
+    - panelGammaCalibratedWarm
+    - panelGammaCalibratedBoostNormal
+    - panelGammaCalibratedBoostCold
+    - panelGammaCalibratedBoostWarm
+    - panelHdmiWbDataBoostNormal
+    - panelHdmiWbDataBoostCold
+    - panelHdmiWbDataBoostWarm
+    - panelPeakBrightnessNonboost
+    - panelPeakBrightnessBoost
+    - panelPeakBrightnessBurst
+    - panelHdmiWbDataSupercold
+    - panelHdmiWbDataBoostSupercold
+    - panelGammaCalibratedSupercold
+    - panelGammaCalibratedBoostSupercold
+
+    # Vendor serialization types
+    - vendorModelName
+    - vendorSerialPrefix

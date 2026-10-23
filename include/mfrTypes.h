@@ -151,120 +151,6 @@ typedef struct _mfrSerializedData_t
 } mfrSerializedData_t;
 
 /**
- * @brief Serialization data types. All values are platform specific
- * 
- * 
- * White balancing calibration for TV sources involves applying calibration to the linear playback streams.
- * White balancing calibration for AV involves applying calibration specifically to the composite source
- * 
- */
-typedef enum _mfrSerializedType_t
-{
-    mfrSERIALIZED_TYPE_MANUFACTURER = 0,             ///< manufacture field. ASCII string
-    mfrSERIALIZED_TYPE_MANUFACTUREROUI,              ///< manufacture oui field. HEX string value
-    mfrSERIALIZED_TYPE_MODELNAME,                    ///< model name field. ASCII string
-    mfrSERIALIZED_TYPE_DESCRIPTION,                  ///< description field. ASCII string
-    mfrSERIALIZED_TYPE_PRODUCTCLASS,                 ///< product class field. ASCII string
-    mfrSERIALIZED_TYPE_SERIALNUMBER,                 ///< serial number field. Alphanumerical string value
-    mfrSERIALIZED_TYPE_HARDWAREVERSION,              ///< Hardware version field. String value
-    mfrSERIALIZED_TYPE_SOFTWAREVERSION,              ///< software field. Decimal stirng value
-    mfrSERIALIZED_TYPE_PROVISIONINGCODE,             ///< provisioning code field. String value
-    mfrSERIALIZED_TYPE_FIRSTUSEDATE,                 ///< first use date field. String value
-    mfrSERIALIZED_TYPE_DEVICEMAC,                    ///< device mac field. HEX string MAC value separated with colon
-    mfrSERIALIZED_TYPE_MOCAMAC,                      ///< MOCA mac field. HEX string MAC value separated with colon
-    mfrSERIALIZED_TYPE_HDMIHDCP,                     ///< HDMI HDCP field. String value
-
-    mfrSERIALIZED_TYPE_PDRIVERSION,                  ///< PDRI version field. It provide the primary Disaster Recovery Image version information
-    mfrSERIALIZED_TYPE_WIFIMAC,                      ///< wifi mac field. HEX string MAC value separated with colon
-    mfrSERIALIZED_TYPE_BLUETOOTHMAC,                 ///< bluetooth MAC field. HEX string MAC value separated with colon
-    mfrSERIALIZED_TYPE_WPSPIN,                       ///< WPS PIN filed. Decimal string
-    mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER,   ///< manufacturing serial number field. Alphanumerical string value
-    mfrSERIALIZED_TYPE_ETHERNETMAC,                  ///< ethernet MAC field. HEX string MAC value separated with colon
-    mfrSERIALIZED_TYPE_ESTBMAC,                      ///< estb mac field. HEX string MAC value separated with colon. Device MAC is same as the ethernet (mfrSERIALIZED_TYPE_ETHERNETMAC) mac
-    mfrSERIALIZED_TYPE_RF4CEMAC,                     ///< RF4CE MAC field. HEX string MAC value separated with colon
-
-    mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME,        ///< provisioned model name field
-    mfrSERIALIZED_TYPE_PMI,                          ///< PMI field. Alphanumerical string value of the model
-    mfrSERIALIZED_TYPE_HWID,                         ///< hardware ID field. HEX sting value of hardware id
-    mfrSERIALIZED_TYPE_MODELNUMBER,                  ///< Model number field. HEX sting value of model number
-    /* boot data */
-    mfrSERIALIZED_TYPE_SOC_ID,                       ///< SOC id field. String value
-    mfrSERIALIZED_TYPE_IMAGENAME,                    ///< image name field. Alphanumerical name of the monolitic image flashed
-    mfrSERIALIZED_TYPE_IMAGETYPE,                    ///< image type field. Alphanumerical type name of the image. Eg: PC1
-    mfrSERIALIZED_TYPE_BLVERSION,                    ///< boot loader version field. Boot loader version value separated with dots. Eg: 6.9.7
-    /* provisional data */
-    mfrSERIALIZED_TYPE_REGION,                       ///< region field. String value
-    /* other data */
-    mfrSERIALIZED_TYPE_BDRIVERSION,                  ///< BDRI version field. It provide the Backup DRI version information
-
-    /* led data */
-    mfrSERIALIZED_TYPE_LED_WHITE_LEVEL,              ///< led white level field. String value
-    mfrSERIALIZED_TYPE_LED_PATTERN,                  ///< led pattern field. String value
-    mfrSERIALIZED_TYPE_MAX,                          ///< End of the common serialization type range; panel and vendor-specific values follow
-#ifdef PANEL_SERIALIZATION_TYPES
-    //As MFR HAL is a precompiled binary across all existing platforms, a distinct region is allocated for panel-based enums, beginning at 0x51. 
-    //This approach allows us to utilize the same type field for corresponding APIs.
-    mfrSERIALIZED_TYPE_COREBOARD_SERIALNUMBER=0x51,  ///< core board serial number field
-    mfrSERIALIZED_TYPE_FACTORYBOOT,                  ///< factory boot field. String value
-    mfrSERIALIZED_TYPE_COUNTRYCODE,                  ///< country code field. To configure country code 
-    mfrSERIALIZED_TYPE_LANGUAGECODE,                 ///< language code field.To configure language code 
-    mfrSERIALIZED_TYPE_MANUFACTURERDATA,             ///< manufacture data field. To configure HDCP filename, PCBA serial number, project id, logo, device lock information 
-    mfrSERIALIZED_TYPE_CPD_SIZE,                     ///< CPD size field. It represent the Size of the Critical panel data
-    mfrSERIALIZED_TYPE_PANEL_ID,                     ///< panel id field. It is unique ID to represent the each unique version(ex: 43", 55" inches etc) of panel
-    mfrSERIALIZED_TYPE_PANEL_TYPE,                   ///< panel type field. Its unique id mapped with each panel ID 
-    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_NORMAL,    ///< HDMI WB data normal field. Standard colour temperature in HDMI source, to adjust r,g,b gain equally to achieve accurate color reproduction.
-    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_COLD,      ///< HDMI WB data cold field. COLD colour temperature in HDMI source, to adjust the blue gain alone to achieve blueish color pattern
-    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_WARM,      ///< HDMI WB data warm field. WARM colour temperature in HDMI source, to adjust the red gain alone to achieve reddish colour pattern
-    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_USER,      ///< HDMI WB data user field. User can change the picture modes as per their requirement in USER colour temperature mode
-    mfrSERIALIZED_TYPE_PANEL_TV_WB_DATA_NORMAL,      ///< panel TV WB data normal field Standard colour temperature in TV source, to adjust r,g,b gain equally to achieve accurate color reproduction. Applicable for linear playback streams
-    mfrSERIALIZED_TYPE_PANEL_TV_WB_DATA_COLD,        ///< panel TV WB data cold field. COLD colour temperature in TV source, to adjust the blue gain alone to to achieve blueish color pattern. Applicable for linear playback streams
-    mfrSERIALIZED_TYPE_PANEL_TV_WB_DATA_WARM,        ///< panel TV WB data warm field. WARM colour temperature in TV source, to adjust the red gain alone to to achieve reddish colour pattern. Applicable for linear playback streams
-    mfrSERIALIZED_TYPE_PANEL_TV_WB_DATA_USER,        ///< panel TV WB data user field. User can change the picture modes as per their requirement in USER colour temperature mode. Applicable for linear playback streams
-    mfrSERIALIZED_TYPE_PANEL_AV_WB_DATA_NORMAL,      ///< panel AV WB data normal field what is the difference between TV and AV  white balance here. TV targets for Linear playback source and For AV target composite source. Applicable for composite source
-    mfrSERIALIZED_TYPE_PANEL_AV_WB_DATA_COLD,        ///< panel AV WB data cold field. COLD colour temperature in AV source, to adjust the blue gain alone to to achieve blueish color pattern. Applicable for composite source
-    mfrSERIALIZED_TYPE_PANEL_AV_WB_DATA_WARM,        ///< panel AV WB data warm field. WARM colour temperature in AV source, to adjust the red gain alone to to achieve reddish colour pattern. Applicable for composite source
-    mfrSERIALIZED_TYPE_PANEL_AV_WB_DATA_USER,        ///< panel AV WB data user field. User can change the picture modes as per their requirement in USER colour temperature mode. Applicable for composite source
-    mfrSERIALIZED_TYPE_PANEL_DTB_VERSION,            ///< Version of the device tree binary(DTB)
-    mfrSERIALIZED_TYPE_PANEL_DTB_DATA_SIZE,          ///< Size of the device tree binary(DTB)
-    mfrSERIALIZED_TYPE_PANEL_DTB_DATA,               ///< panel DTB data. The DTB file contains a binary-formatted flattened device tree data
-
-    /* panel data*/
-    mfrSERIALIZED_TYPE_PANEL_DATA_FUNCTION_STATUS,
-    mfrSERIALIZED_TYPE_PANEL_DATA_AGEING_TIME,
-    mfrSERIALIZED_TYPE_PANEL_DATA_POWER_ON_TIME,
-    mfrSERIALIZED_TYPE_PANEL_DATA_BACKLIGHT_TIME,
-    mfrSERIALIZED_TYPE_PANEL_DATA_VALID,
-    mfrSERIALIZED_TYPE_PANEL_DATA_TPV_APP_VERSION,
-    mfrSERIALIZED_TYPE_PANEL_ALS_CALIBRATION_INDEX0,
-    mfrSERIALIZED_TYPE_PANEL_ALS_CALIBRATION_INDEX1,
-    /*Gamma data*/
-    mfrSERIALIZED_TYPE_PANEL_GAMMA_CALIBRATED_NORMAL,
-    mfrSERIALIZED_TYPE_PANEL_GAMMA_CALIBRATED_COLD,
-    mfrSERIALIZED_TYPE_PANEL_GAMMA_CALIBRATED_WARM,
-    mfrSERIALIZED_TYPE_PANEL_GAMMA_CALIBRATED_BOOST_NORMAL,
-    mfrSERIALIZED_TYPE_PANEL_GAMMA_CALIBRATED_BOOST_COLD,
-    mfrSERIALIZED_TYPE_PANEL_GAMMA_CALIBRATED_BOOST_WARM,
-    /*WB data boost*/
-    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_BOOST_NORMAL,
-    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_BOOST_COLD,
-    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_BOOST_WARM,
-    /*Tmax*/
-    mfrSERIALIZED_TYPE_PANEL_PEAK_BRIGHTNESS_NONBOOST,
-    mfrSERIALIZED_TYPE_PANEL_PEAK_BRIGHTNESS_BOOST,
-    mfrSERIALIZED_TYPE_PANEL_PEAK_BRIGHTNESS_BURST,
-    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_SUPERCOLD,
-    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_BOOST_SUPERCOLD,
-    mfrSERIALIZED_TYPE_PANEL_GAMMA_CALIBRATED_SUPERCOLD,
-    mfrSERIALIZED_TYPE_PANEL_GAMMA_CALIBRATED_BOOST_SUPERCOLD,
-    mfrSERIALIZED_TYPE_PANEL_MAX,                    ///< End of the panel serialization type range
-#endif
-    mfrSERIALIZED_TYPE_VENDOR_MODEL_NAME = 8000,         ///< Vendor-specific serialization parameter
-    mfrSERIALIZED_TYPE_VENDOR_SERIAL_PREFIX,
-    mfrSERIALIZED_TYPE_VENDOR_MAX            ///< End of the vendor-specific serialization parameter range
-} mfrSerializedType_t;
-
-
-/**
  * @brief MFR image types
  * 
  */
@@ -371,13 +257,14 @@ mfrError_t mfr_term( void );
  * @brief Retrieves serialized Read-Only data from device
  * 
  * 
- * @param [in] type :  specifies the serialized data type to be read. @see mfrSerializedType_t
+ * @param [in] type :  serialization type name configured in mfr-serialization.yaml. Must not be NULL.
  * @param [out] data :  serialized data for the specific type requested. (buffer location, length, and func to free the buffer). @see mfrSerializedData_t
  *
  * @return mfrError_t                      - Status
  * @retval mfrERR_NONE                     - Success
  * @retval mfrERR_NOT_INITIALIZED          - Module is not initialised
- * @retval mfrERR_INVALID_PARAM            - Parameter passed to this function is invalid
+ * @retval mfrERR_INVALID_PARAM            - `type` or `data` is NULL
+ * @retval mfrERR_OPERATION_NOT_SUPPORTED  - Serialization type is not recognized or supported
  * @retval mfrERR_MEMORY_EXHAUSTED         - memory allocation failure
  * @retval mfrERR_FAILED_CRC_CHECK         - CRC check failed
  * @retval mfrERR_FLASH_READ_FAILED        - Flash read failed
@@ -389,19 +276,20 @@ mfrError_t mfr_term( void );
  * @warning  This API is Not thread safe
  * 
  */
-mfrError_t mfrGetSerializedData( mfrSerializedType_t type,  mfrSerializedData_t *data );
+mfrError_t mfrGetSerializedData( const char *type,  mfrSerializedData_t *data );
 
 /**
  * @brief Sets the read write Serialization data on device
  * @deprecated This API is not required by the current MW integration.
  *
- * @param [in] type :  specifies the serialized data type to write. @see mfrSerializedType_t
+ * @param [in] type :  serialization type name configured in mfr-serialization.yaml. Must not be NULL.
  * @param [in] data :  serialized data to set for the specific type requested. (buffer location, length, and func to free the buffer). @see mfrSerializedData_t
  *
  * @return mfrError_t                       - Status
  * @retval mfrERR_NONE                      - Success
  * @retval mfrERR_NOT_INITIALIZED           - Module is not initialised
- * @retval mfrERR_INVALID_PARAM             - Parameter passed to this function is invalid
+ * @retval mfrERR_INVALID_PARAM             - `type` or `data` is NULL
+ * @retval mfrERR_OPERATION_NOT_SUPPORTED   - Serialization type is not recognized or supported
  * @retval mfrERR_MEMORY_EXHAUSTED          - memory allocation failure
  * @retval mfrERR_FAILED_CRC_CHECK          - CRC check failed
  * @retval mfrERR_WRITE_FLASH_FAILED        - Flash write failed
@@ -412,7 +300,7 @@ mfrError_t mfrGetSerializedData( mfrSerializedType_t type,  mfrSerializedData_t 
  * @warning  This API is Not thread safe
  * 
  */
-mfrError_t mfrSetSerializedData( mfrSerializedType_t type,  mfrSerializedData_t *data);
+mfrError_t mfrSetSerializedData( const char *type,  mfrSerializedData_t *data);
 
 /**
  * @brief Writes the image into flash

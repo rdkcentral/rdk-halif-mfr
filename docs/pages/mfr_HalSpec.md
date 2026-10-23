@@ -255,54 +255,25 @@ HAL headers.
 
 ### Serialization Types
 
-| Enum | Description |
-| --- | --- |
-| `mfrSERIALIZED_TYPE_MANUFACTURER` | Manufacturer |
-| `mfrSERIALIZED_TYPE_MANUFACTUREROUI` | Manufacturer OUI |
-| `mfrSERIALIZED_TYPE_MODELNAME` | Model name |
-| `mfrSERIALIZED_TYPE_DESCRIPTION` | Device description |
-| `mfrSERIALIZED_TYPE_PRODUCTCLASS` | Product class |
-| `mfrSERIALIZED_TYPE_SERIALNUMBER` | Serial number |
-| `mfrSERIALIZED_TYPE_HARDWAREVERSION` | Hardware version |
-| `mfrSERIALIZED_TYPE_SOFTWAREVERSION` | Software version |
-| `mfrSERIALIZED_TYPE_PROVISIONINGCODE` | Provisioning code |
-| `mfrSERIALIZED_TYPE_FIRSTUSEDATE` | First-use date |
-| `mfrSERIALIZED_TYPE_DEVICEMAC` | Device MAC address |
-| `mfrSERIALIZED_TYPE_MOCAMAC` | MoCA MAC address |
-| `mfrSERIALIZED_TYPE_HDMIHDCP` | HDMI HDCP data |
-| `mfrSERIALIZED_TYPE_PDRIVERSION` | Primary DRI version |
-| `mfrSERIALIZED_TYPE_WIFIMAC` | Wi-Fi MAC address |
-| `mfrSERIALIZED_TYPE_BLUETOOTHMAC` | Bluetooth MAC address |
-| `mfrSERIALIZED_TYPE_WPSPIN` | WPS PIN |
-| `mfrSERIALIZED_TYPE_ETHERNETMAC` | Ethernet MAC address |
-| `mfrSERIALIZED_TYPE_ESTBMAC` | eSTB MAC address |
-| `mfrSERIALIZED_TYPE_RF4CEMAC` | RF4CE MAC address |
-| `mfrSERIALIZED_TYPE_PMI` | Product manufacturer information |
-| `mfrSERIALIZED_TYPE_HWID` | Hardware ID |
-| `mfrSERIALIZED_TYPE_MODELNUMBER` | Model number |
-| `mfrSERIALIZED_TYPE_SOC_ID` | SoC ID |
-| `mfrSERIALIZED_TYPE_IMAGENAME` | Flashed image name |
-| `mfrSERIALIZED_TYPE_IMAGETYPE` | Image type |
-| `mfrSERIALIZED_TYPE_BLVERSION` | Bootloader version |
-| `mfrSERIALIZED_TYPE_REGION` | Region |
-| `mfrSERIALIZED_TYPE_BDRIVERSION` | Backup DRI version |
-| `mfrSERIALIZED_TYPE_LED_WHITE_LEVEL` | LED white level |
-| `mfrSERIALIZED_TYPE_LED_PATTERN` | LED pattern |
+Serialization types are case-sensitive strings configured in
+`config/mfr-serialization.yaml`. The configured string is passed to
+`mfrGetSerializedData()` or `mfrSetSerializedData()` as the `type` parameter.
 
-Panel-specific serialization types are available when
-`PANEL_SERIALIZATION_TYPES` is enabled.
+| Type | Category | Description |
+| --- | --- | --- |
+| `manufacturer` | Core | Manufacturer |
+| `modelName` | Core | Model name |
+| `serialNumber` | Core | Serial number |
+| `hardwareVersion` | Core | Hardware version |
+| `softwareVersion` | Core | Software version |
+| `deviceMac` | Optional | Device MAC address |
+| `productClass` | Optional | Product class |
 
 ## Notes
 
-- `mfrSERIALIZED_TYPE_MAX` marks the end of the common serialization range;
-    it is not the final value in the enum.
-- When `PANEL_SERIALIZATION_TYPES` is enabled,
-    `mfrSERIALIZED_TYPE_PANEL_MAX` marks the end of the panel serialization
-    range.
-- Vendor-specific serialization parameters begin at value `8000` with
-    `mfrSERIALIZED_TYPE_VENDOR_MODEL_NAME` and include
-    `mfrSERIALIZED_TYPE_VENDOR_SERIAL_PREFIX`; the range ends at
-    `mfrSERIALIZED_TYPE_VENDOR_MAX`.
+- Operator and vendor serialization types may extend the `serialization` list.
+- Implementations shall return `mfrERR_INVALID_PARAM` for a NULL, empty, or
+    unsupported serialization type string.
 
 ### Image Types
 
